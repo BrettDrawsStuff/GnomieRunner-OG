@@ -142,6 +142,7 @@ function startGame() {
   // Reset jump hint
   showJumpHint = true;
   jumpHintStartTime = millis();
+  
 }
 
 // Gameplay
@@ -276,6 +277,17 @@ function drawGameOver() {
 function triggerGameOver() {
   gameState = "gameOver";
   gameOverTime = millis();
+}
+
+function keyPressed() {
+  // If on title screen and spacebar pressed, start game
+  if (gameState === "title" && (key === ' ' || keyCode === 32)) {
+    startGame();
+  }
+  // If playing, spacebar makes player jump
+  else if (gameState === "playing" && keyCode === 32 && player && !player.falling) {
+    player.jump();
+  }
 }
 
 // ------------------- SEGMENT 3: PLAYER CLASS -------------------
@@ -506,12 +518,5 @@ class Collectible {
 
   offscreen() {
     return this.x + this.r < 0;
-  }
-}
-
-// Input handling
-function keyPressed() {
-  if (keyCode === 32 && player && !player.falling) {
-    player.jump();
   }
 }
