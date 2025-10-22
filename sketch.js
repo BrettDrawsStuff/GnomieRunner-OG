@@ -14,6 +14,8 @@ let runFrames = [], jumpFrame, doubleJumpFrame, fallFrame;
 let collectibleImg;
 let gameOverImg;
 
+let birdImg;
+
 let playButton;
 let gameState = "title";
 
@@ -29,7 +31,7 @@ let jumpHintStartTime = 0;
 const jumpHintDuration = 4000; // 4 seconds in milliseconds
 
 
-const TARGET_HEIGHT = 100; // desired draw height for all player spr ites
+const TARGET_HEIGHT = 100; // desired draw height for all player sprites
 
 function preload() {
   // Background and UI images
@@ -41,6 +43,8 @@ function preload() {
   playBtnImg = loadImage('play_button.png');
   gameOverImg = loadImage('gameover.gif');
   pixelFont = loadFont('pixelFont.ttf');
+  
+  birdImg = loadImage('bird.gif');
 
   // Player run frames (precompute _drawWidth and _drawHeight)
   runFrames = [];
@@ -90,7 +94,7 @@ function draw() {
     drawGame();
   } else if (gameState === "gameOver") {
     drawGameOver();
-    if (millis() - gameOverTime > 5000) {
+    if (millis() - gameOverTime > 6000) {
       gameState = "title";
       if (!playButton) createPlayButton();
     }
@@ -197,7 +201,7 @@ function drawGame() {
   // Draw block/tall obstacles and handle collisions
   for (let obs of obstacles) {
     obs.update();
-    if (!obs.offscreen() && (obs.type === "block" || obs.type === "tall")) {
+    if (!obs.offscreen() && (obs.type === "block" || obs.type === "tall" || obs.type === "bird")) {
       obs.show();
       if (obs.hits(player)) triggerGameOver();
     }
@@ -426,18 +430,28 @@ class Obstacle {
     this.speed = 3.5;
     let r = random();
 
-    if (r < 0.33) {
+    if (r < 0.25) {
       this.type = "block";
       this.w = 32;
       this.h = 32;
       this.x = width;
       this.y = groundY - this.h + 9;
-    } else if (r < 0.66) {
+
+    } else if (r < 0.5) {
       this.type = "tall";
       this.w = 35;
       this.h = 100;
       this.x = width;
       this.y = groundY - this.h + 5;
+
+    } else if (r < 0.6) {
+      this.type = "bird";
+      this.w = 35;
+      this.h = 30;
+      this.x = width;
+      this.y = groundY - this.h - random(120, 175); // up in the air
+      this.speed = 6; // slightly faster
+
     } else {
       this.type = "hole";
       this.w = int(random(50, 120));
@@ -454,8 +468,10 @@ class Obstacle {
   show() {
     if (this.type === "block" && blockImg) image(blockImg, this.x, this.y, this.w, this.h);
     else if (this.type === "tall" && tallImg) image(tallImg, this.x, this.y, this.w, this.h);
+    else if (this.type === "bird" && birdImg) image(birdImg, this.x, this.y, this.w, this.h);
     else if (this.type === "hole" && holeImg) image(holeImg, this.x, this.y, this.w, this.h);
-    else if (this.type === "block" || this.type === "tall") {
+    else {
+      // fallback debug rect
       push();
       fill(200, 50, 50);
       stroke(0);
@@ -473,12 +489,13 @@ class Obstacle {
 
     let hitbox = player.getHitbox();
 
-    return !(hitbox.x + hitbox.w < this.x ||  // player left of obstacle
-             hitbox.x > this.x + this.w ||    // player right of obstacle
-             hitbox.y + hitbox.h < this.y ||  // player above obstacle
-             hitbox.y > this.y + this.h);     // player below obstacle
+    return !(hitbox.x + hitbox.w < this.x ||
+             hitbox.x > this.x + this.w ||
+             hitbox.y + hitbox.h < this.y ||
+             hitbox.y > this.y + this.h);
   }
 }
+
 
 // ------------------- SEGMENT 5: COLLECTIBLES + INPUT -------------------
 class Collectible {
