@@ -16,6 +16,13 @@ let gameOverImg;
 
 let birdImg;
 
+let bgMusic;
+
+let gameOverSound;
+
+let collectSound;
+
+
 let playButton;
 let gameState = "title";
 
@@ -45,6 +52,13 @@ function preload() {
   pixelFont = loadFont('pixelFont.ttf');
   
   birdImg = loadImage('bird.gif');
+  
+  bgMusic = loadSound('backgroundMusic.mp3');
+  
+  gameOverSound = loadSound('gameOver.mp3');
+  
+  collectSound = loadSound('collect.mp3');
+
 
   // Player run frames (precompute _drawWidth and _drawHeight)
   runFrames = [];
@@ -139,6 +153,11 @@ function startGame() {
   nextObstacleFrame = frameCount + int(random(90, 150));
   nextCollectibleFrame = frameCount + int(random(100, 200));
   gameState = "playing";
+  
+  if (bgMusic && !bgMusic.isPlaying()) {
+  bgMusic.loop();
+}
+
 
   bgX1 = 0;
   bgX2 = width;
@@ -233,9 +252,10 @@ function drawGame() {
     let c = collectibles[i];
     c.update();
     c.show();
-    if (c.collected(player)) {
-      score++;
-      collectibles.splice(i, 1);
+if (c.collected(player)) {
+  score++;
+  if (collectSound) collectSound.play();
+  collectibles.splice(i, 1);
     } else if (c.offscreen()) {
       collectibles.splice(i, 1);
     }
@@ -281,6 +301,16 @@ function drawGameOver() {
 function triggerGameOver() {
   gameState = "gameOver";
   gameOverTime = millis();
+
+if (bgMusic && bgMusic.isPlaying()) {
+  bgMusic.stop();
+}
+  
+  if (gameOverSound) {
+  gameOverSound.play();
+}
+
+
 }
 
 function keyPressed() {
