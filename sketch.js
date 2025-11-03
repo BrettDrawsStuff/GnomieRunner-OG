@@ -40,6 +40,11 @@ const jumpHintDuration = 4000; // 4 seconds in milliseconds
 
 const TARGET_HEIGHT = 100; // desired draw height for all player sprites
 
+const BASE_W = 800;
+const BASE_H = 400;
+let scaleFactor = 1;
+
+
 function preload() {
   // Background and UI images
   bgImg = loadImage('background.png');
@@ -85,21 +90,30 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(800, 400);
-  groundY = height - 50;
-  
+  createCanvas(windowWidth, windowHeight);
+  groundY = BASE_H - 50;
+
   noSmooth();
 
-  // Initialize background scroll
   bgX1 = 0;
-  bgX2 = width;
+  bgX2 = BASE_W;
 
-  // Initialize player
   player = new Player();
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
+
 // ------------------- SEGMENT 2: GAME LOOP & STATES -------------------
 function draw() {
+  // compute scale factor based on whichever dimension fits best
+  scaleFactor = min(width / BASE_W, height / BASE_H);
+
+  push();
+  scale(scaleFactor); // everything below this line is scaled (the whole game world!)
+  
   drawBackground();
 
   if (gameState === "title") {
@@ -113,36 +127,62 @@ function draw() {
       if (!playButton) createPlayButton();
     }
   }
+
+  pop();
 }
+
 
 // Background scrolling
 function drawBackground() {
-  if (bgImg) {
-    image(bgImg, bgX1, 0, width, height);
-    image(bgImg, bgX2, 0, width, height);
+  if (!bgImg) return;
 
-    if (gameState === "playing") {
-    bgX1 -= bgSpeed;
-    bgX2 -= bgSpeed;
-
-    if (bgX1 <= -width) bgX1 = bgX2 + width;
-    if (bgX2 <= -width) bgX2 = bgX1 + width;
-    }
+  // Only draw + scroll background during gameplay
+  if (gameState !== "playing") {
+    // Draw a flat color instead so title/gameover screens have clean background
+    push();
+    noStroke();
+    fill(0); // light neutral BG — adjust if you want
+    rect(0, 0, BASE_W * 1.5, BASE_H);
+    pop();
+    return;
   }
+
+  // draw background at world size, not screen size
+  image(bgImg, bgX1, 0, BASE_W, BASE_H);
+  image(bgImg, bgX2, 0, BASE_W, BASE_H);
+
+  // scroll only when playing
+  bgX1 -= bgSpeed;
+  bgX2 -= bgSpeed;
+
+  if (bgX1 <= -BASE_W) bgX1 = bgX2 + BASE_W;
+  if (bgX2 <= -BASE_W) bgX2 = bgX1 + BASE_W;
 }
+
+
 
 // Title screen
 function drawTitleScreen() {
-  if (titleImg) image(titleImg, width / 2 - titleImg.width / 2, 0);
+  if (titleImg) {
+    image(titleImg, BASE_W/2 - titleImg.width/2 + 5, 0);
+  }
   if (!playButton) createPlayButton();
 }
 
+
 function createPlayButton() {
   playButton = createImg('play_button.png');
-  playButton.position(width / 2 - playBtnImg.width / 2, height / 2 + 10);
-  playButton.size(playBtnImg.width, playBtnImg.height);
+
+  let btnWorldX = BASE_W / 2 - playBtnImg.width / 2;
+  let btnWorldY = BASE_H / 2 + 20;
+
+  playButton.position(btnWorldX * scaleFactor, btnWorldY * scaleFactor);
+  playButton.size(playBtnImg.width * scaleFactor, playBtnImg.height * scaleFactor);
+
   playButton.mousePressed(startGame);
 }
+
+
 
 function startGame() {
   if (playButton) { playButton.remove(); playButton = null; }
@@ -160,7 +200,7 @@ function startGame() {
 
 
   bgX1 = 0;
-  bgX2 = width;
+  bgX2 = BASE_W;
   
   // Reset jump hint
   showJumpHint = true;
@@ -171,7 +211,7 @@ function startGame() {
 // Gameplay
 function drawGame() {
   fill(0);
-  textSize(24);
+  textSize(12 * scaleFactor);
   textFont(pixelFont);
   textAlign(LEFT, TOP);
   text("Score: " + score, 10, 10);
@@ -183,9 +223,9 @@ function drawGame() {
 
   fill(0, alpha); // black text with fading alpha
   textFont(pixelFont);
-  textSize(24);
+  textSize(12 * scaleFactor);
   textAlign(CENTER, TOP);
-  text("Press SPACE to jump", width / 2, 10);
+  text("Press SPACE to jump", BASE_W / 2, 10);
 
   if (elapsed > jumpHintDuration) {
     showJumpHint = false; // completely hide after fade
@@ -205,7 +245,7 @@ function drawGame() {
       startX = obs.x + obs.w;
     }
   }
-  line(startX, groundY, width, groundY);
+  line(startX, groundY, BASE_W, groundY);
 
   // Spawn obstacles and collectibles
   if (frameCount >= nextObstacleFrame) {
@@ -266,6 +306,7 @@ if (c.collected(player)) {
 
 // Game over
 function drawGameOver() {
+  // Draw clean ground only
   stroke(0);
   strokeWeight(0);
   let startX = 0;
@@ -275,28 +316,30 @@ function drawGameOver() {
       startX = obs.x + obs.w;
     }
   }
-  line(startX, groundY, width, groundY);
+  line(startX, groundY, BASE_W, groundY);
 
-  for (let obs of obstacles) obs.show();
-  for (let c of collectibles) c.show();
+  // ✅ DO NOT draw obstacles or collectibles
+  // (we only show them in "playing" state)
 
+  // Draw player (last frame frozen)
   player.show();
   player.updateDust();
 
-  // Display game over image
+  // Game Over GIF
   if (millis() - gameOverTime > 150 && gameOverImg) {
     imageMode(CENTER);
-    image(gameOverImg, width / 2, height / 2);
+    image(gameOverImg, BASE_W / 2 + 5, BASE_H / 2);
     imageMode(CORNER);
   }
 
-  // Display score at top center
+  // Score text
   fill(0);
   textFont(pixelFont);
-  textSize(40);
+  textSize(24 * scaleFactor);
   textAlign(CENTER, TOP);
-  text("Score: " + score, width / 2, 10);
+  text("Score: " + score, BASE_W / 2, 10);
 }
+
 
 function triggerGameOver() {
   gameState = "gameOver";
