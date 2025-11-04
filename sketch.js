@@ -13,15 +13,11 @@ let bgImg, blockImg, tallImg, holeImg, titleImg, playBtnImg;
 let runFrames = [], jumpFrame, doubleJumpFrame, fallFrame;
 let collectibleImg;
 let gameOverImg;
-
 let birdImg;
 
 let bgMusic;
-
 let gameOverSound;
-
 let collectSound;
-
 
 let playButton;
 let gameState = "title";
@@ -37,13 +33,11 @@ let showJumpHint = true;
 let jumpHintStartTime = 0;
 const jumpHintDuration = 4000; // 4 seconds in milliseconds
 
-
 const TARGET_HEIGHT = 100; // desired draw height for all player sprites
 
 const BASE_W = 800;
 const BASE_H = 400;
 let scaleFactor = 1;
-
 
 function preload() {
   // Background and UI images
@@ -55,15 +49,10 @@ function preload() {
   playBtnImg = loadImage('play_button.png');
   gameOverImg = loadImage('gameover.gif');
   pixelFont = loadFont('pixelFont.ttf');
-  
   birdImg = loadImage('bird.gif');
-  
   bgMusic = loadSound('backgroundMusic.mp3');
-  
   gameOverSound = loadSound('gameOver.mp3');
-  
   collectSound = loadSound('collect.mp3');
-
 
   // Player run frames (precompute _drawWidth and _drawHeight)
   runFrames = [];
@@ -105,15 +94,23 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
-
 // ------------------- SEGMENT 2: GAME LOOP & STATES -------------------
 function draw() {
-  // compute scale factor based on whichever dimension fits best
   scaleFactor = min(width / BASE_W, height / BASE_H);
 
+  background(0); // black outside gameplay area
+
   push();
-  scale(scaleFactor); // everything below this line is scaled (the whole game world!)
-  
+
+  translate((width - BASE_W * scaleFactor) / 2, (height - BASE_H * scaleFactor) / 2);
+  scale(scaleFactor);
+
+  // Define clipping box
+  drawingContext.save();
+  drawingContext.beginPath();
+  drawingContext.rect(0, 0, BASE_W, BASE_H);
+  drawingContext.clip();
+
   drawBackground();
 
   if (gameState === "title") {
@@ -128,38 +125,36 @@ function draw() {
     }
   }
 
+  // restore clipping so UI never gets clipped
+  drawingContext.restore();
   pop();
 }
-
 
 // Background scrolling
 function drawBackground() {
   if (!bgImg) return;
 
-  // Only draw + scroll background during gameplay
   if (gameState !== "playing") {
-    // Draw a flat color instead so title/gameover screens have clean background
     push();
     noStroke();
-    fill(0); // light neutral BG — adjust if you want
-    rect(0, 0, BASE_W * 1.5, BASE_H);
+    fill(0);
+    rect(0, 0, BASE_W, BASE_H);
     pop();
     return;
   }
 
-  // draw background at world size, not screen size
-  image(bgImg, bgX1, 0, BASE_W, BASE_H);
-  image(bgImg, bgX2, 0, BASE_W, BASE_H);
+  let x1 = Math.floor(bgX1);
+  let x2 = Math.floor(bgX2);
 
-  // scroll only when playing
+  image(bgImg, x1, 0, BASE_W + 1, BASE_H);
+  image(bgImg, x2, 0, BASE_W + 1, BASE_H);
+
   bgX1 -= bgSpeed;
   bgX2 -= bgSpeed;
 
   if (bgX1 <= -BASE_W) bgX1 = bgX2 + BASE_W;
   if (bgX2 <= -BASE_W) bgX2 = bgX1 + BASE_W;
 }
-
-
 
 // Title screen
 function drawTitleScreen() {
@@ -169,20 +164,20 @@ function drawTitleScreen() {
   if (!playButton) createPlayButton();
 }
 
-
 function createPlayButton() {
   playButton = createImg('play_button.png');
 
   let btnWorldX = BASE_W / 2 - playBtnImg.width / 2;
-  let btnWorldY = BASE_H / 2 + 20;
+  let btnWorldY = BASE_H / 2 ;
 
-  playButton.position(btnWorldX * scaleFactor, btnWorldY * scaleFactor);
+  let px = (width - BASE_W * scaleFactor) / 2 + btnWorldX * scaleFactor;
+let py = (height - BASE_H * scaleFactor) / 2 + btnWorldY * scaleFactor;
+playButton.position(px, py);
+
   playButton.size(playBtnImg.width * scaleFactor, playBtnImg.height * scaleFactor);
 
   playButton.mousePressed(startGame);
 }
-
-
 
 function startGame() {
   if (playButton) { playButton.remove(); playButton = null; }
@@ -197,7 +192,6 @@ function startGame() {
   if (bgMusic && !bgMusic.isPlaying()) {
   bgMusic.loop();
 }
-
 
   bgX1 = 0;
   bgX2 = BASE_W;
@@ -231,9 +225,7 @@ function drawGame() {
     showJumpHint = false; // completely hide after fade
   
 }
-
 }
-
 
   // Draw ground segments (skip holes)
   stroke(0);
@@ -318,10 +310,6 @@ function drawGameOver() {
   }
   line(startX, groundY, BASE_W, groundY);
 
-  // ✅ DO NOT draw obstacles or collectibles
-  // (we only show them in "playing" state)
-
-  // Draw player (last frame frozen)
   player.show();
   player.updateDust();
 
@@ -340,7 +328,6 @@ function drawGameOver() {
   text("Score: " + score, BASE_W / 2, 10);
 }
 
-
 function triggerGameOver() {
   gameState = "gameOver";
   gameOverTime = millis();
@@ -352,8 +339,6 @@ if (bgMusic && bgMusic.isPlaying()) {
   if (gameOverSound) {
   gameOverSound.play();
 }
-
-
 }
 
 function keyPressed() {
@@ -495,8 +480,6 @@ class Player {
   }
 }
 
-
-
 // ------------------- SEGMENT 4: OBSTACLE CLASS -------------------
 class Obstacle {
   constructor() {
@@ -568,7 +551,6 @@ class Obstacle {
              hitbox.y > this.y + this.h);
   }
 }
-
 
 // ------------------- SEGMENT 5: COLLECTIBLES + INPUT -------------------
 class Collectible {
