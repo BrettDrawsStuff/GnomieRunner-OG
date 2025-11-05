@@ -1,3 +1,6 @@
+// Debug helpers added at top
+console.log('sketch.js loaded');
+
 // ------------------- SEGMENT 1: GLOBAL SETUP + PRELOAD -------------------
 let player;
 let obstacles = [];
@@ -40,55 +43,68 @@ const BASE_H = 400;
 let scaleFactor = 1;
 
 function preload() {
-  // NOTE: All asset paths are now relative (no leading slash, no absolute URLs).
-  // Place your files under the folders suggested below:
-  // - assets/images/
-  // - assets/sounds/
-  // - assets/fonts/
+  console.log('preload started');
 
-  // Background and UI images
-  bgImg = loadImage('assets/images/background.png');
-  blockImg = loadImage('assets/images/block.png');
-  tallImg = loadImage('assets/images/tall.png');
-  holeImg = loadImage('assets/images/hole.png');
-  titleImg = loadImage('assets/images/title.png');
-  playBtnImg = loadImage('assets/images/play_button.png');
-  gameOverImg = loadImage('assets/images/gameover.gif');
-  pixelFont = loadFont('assets/fonts/pixelFont.ttf');
-  birdImg = loadImage('assets/images/bird.gif');
-  bgMusic = loadSound('assets/sounds/backgroundMusic.mp3');
-  gameOverSound = loadSound('assets/sounds/gameOver.mp3');
-  collectSound = loadSound('assets/sounds/collect.mp3');
+  // NOTE: All asset paths are relative. Make sure filenames and casing match exactly.
+  try {
+    // Background and UI images
+    bgImg = loadImage('assets/images/background.png');
+    blockImg = loadImage('assets/images/block.png');
+    tallImg = loadImage('assets/images/tall.png');
+    holeImg = loadImage('assets/images/hole.png');
+    titleImg = loadImage('assets/images/title.png');
+    playBtnImg = loadImage('assets/images/play_button.png');
+    gameOverImg = loadImage('assets/images/gameover.gif');
+    pixelFont = loadFont('assets/fonts/pixelFont.ttf');
+    birdImg = loadImage('assets/images/bird.gif');
 
-  // Player run frames (precompute _drawWidth and _drawHeight)
-  runFrames = [];
-  for (let i = 1; i <= 6; i++) {
-    let img = loadImage(`assets/images/run${i}.png`, (loadedImg) => {
-      loadedImg._drawHeight = TARGET_HEIGHT;
-      loadedImg._drawWidth = (loadedImg.width / loadedImg.height) * TARGET_HEIGHT;
+    // Guard loadSound — if p5.sound failed to load, typeof loadSound !== 'function'
+    if (typeof loadSound === 'function') {
+      bgMusic = loadSound('assets/sounds/backgroundMusic.mp3');
+      gameOverSound = loadSound('assets/sounds/gameOver.mp3');
+      collectSound = loadSound('assets/sounds/collect.mp3');
+    } else {
+      console.warn('p5.sound not available — skipping sound loads');
+      bgMusic = null;
+      gameOverSound = null;
+      collectSound = null;
+    }
+
+    // Player run frames (precompute _drawWidth and _drawHeight)
+    runFrames = [];
+    for (let i = 1; i <= 6; i++) {
+      let img = loadImage(`assets/images/run${i}.png`, (loadedImg) => {
+        loadedImg._drawHeight = TARGET_HEIGHT;
+        loadedImg._drawWidth = (loadedImg.width / loadedImg.height) * TARGET_HEIGHT;
+      });
+      runFrames.push(img);
+    }
+
+    // Jump / doubleJump / fall frames
+    const extraFrames = [
+      'assets/images/jump.png',
+      'assets/images/doubleJump.png',
+      'assets/images/fall.png'
+    ];
+    [jumpFrame, doubleJumpFrame, fallFrame] = extraFrames.map(f => {
+      let img = loadImage(f, (loadedImg) => {
+        loadedImg._drawHeight = TARGET_HEIGHT;
+        loadedImg._drawWidth = (loadedImg.width / loadedImg.height) * TARGET_HEIGHT;
+      });
+      return img;
     });
-    runFrames.push(img);
+
+    // Collectible image
+    collectibleImg = loadImage('assets/images/collectible.png');
+
+  } catch (e) {
+    console.error('Error during preload:', e);
   }
-
-  // Jump / doubleJump / fall frames
-  const extraFrames = [
-    'assets/images/jump.png',
-    'assets/images/doubleJump.png',
-    'assets/images/fall.png'
-  ];
-  [jumpFrame, doubleJumpFrame, fallFrame] = extraFrames.map(f => {
-    let img = loadImage(f, (loadedImg) => {
-      loadedImg._drawHeight = TARGET_HEIGHT;
-      loadedImg._drawWidth = (loadedImg.width / loadedImg.height) * TARGET_HEIGHT;
-    });
-    return img;
-  });
-
-  // Collectible image
-  collectibleImg = loadImage('assets/images/collectible.png');
+  console.log('preload finished (end of preload function)');
 }
 
 function setup() {
+  console.log('setup start');
   createCanvas(windowWidth, windowHeight);
   groundY = BASE_H - 50;
 
@@ -98,6 +114,12 @@ function setup() {
   bgX2 = BASE_W;
 
   player = new Player();
+
+  // remove the loading message once setup runs
+  const ld = document.getElementById('loading');
+  if (ld) ld.style.display = 'none';
+
+  console.log('setup finished');
 }
 
 function windowResized() {
