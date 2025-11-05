@@ -1,15 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <title>Gnomie Runner</title>
+
+    <script>console.log('index.html top');</script>
+
+    <!-- p5 core then p5.sound (order matters) -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8" />
 
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>body{margin:0;background:#fff} #loading{position:fixed; left:8px; top:8px; z-index:9999;}</style>
+
+    <!-- global error handlers to capture issues early -->
+    <script>
+      window.addEventListener('error', function (ev) {
+        console.error('Global error:', ev.message || ev.error, 'file:', ev.filename, 'line:', ev.lineno, ev.error);
+      });
+      window.addEventListener('unhandledrejection', function (ev) {
+        console.error('Unhandled Promise rejection:', ev.reason);
+      });
+    </script>
   </head>
   <body>
-    <main>
-    </main>
+    <div id="loading">Loading...</div>
+    <main></main>
+
+    <!-- your sketch (after p5 libs) -->
     <script src="sketch.js"></script>
   </body>
 </html>
