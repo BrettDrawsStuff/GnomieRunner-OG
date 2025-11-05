@@ -1,6 +1,11 @@
 // Debug helpers added at top
 console.log('sketch.js loaded');
 
+// ------------------- ASSET BASE (GitHub Pages) -------------------
+// Change this to the exact GitHub Pages live URL for your repo.
+// Use the live site URL that GitHub shows when Pages is enabled.
+const ASSET_BASE = 'https://brettdrawsstuff.github.io/GnomieRunner-OG/';
+
 // ------------------- SEGMENT 1: GLOBAL SETUP + PRELOAD -------------------
 let player;
 let obstacles = [];
@@ -45,24 +50,24 @@ let scaleFactor = 1;
 function preload() {
   console.log('preload started');
 
-  // NOTE: All asset paths are relative. Make sure filenames and casing match exactly.
+  // NOTE: All asset paths are now absolute using ASSET_BASE (GitHub Pages).
   try {
     // Background and UI images
-    bgImg = loadImage('assets/images/background.png');
-    blockImg = loadImage('assets/images/block.png');
-    tallImg = loadImage('assets/images/tall.png');
-    holeImg = loadImage('assets/images/hole.png');
-    titleImg = loadImage('assets/images/title.png');
-    playBtnImg = loadImage('assets/images/play_button.png');
-    gameOverImg = loadImage('assets/images/gameover.gif');
-    pixelFont = loadFont('assets/fonts/pixelFont.ttf');
-    birdImg = loadImage('assets/images/bird.gif');
+    bgImg = loadImage(ASSET_BASE + 'assets/images/background.png');
+    blockImg = loadImage(ASSET_BASE + 'assets/images/block.png');
+    tallImg = loadImage(ASSET_BASE + 'assets/images/tall.png');
+    holeImg = loadImage(ASSET_BASE + 'assets/images/hole.png');
+    titleImg = loadImage(ASSET_BASE + 'assets/images/title.png');
+    playBtnImg = loadImage(ASSET_BASE + 'assets/images/play_button.png');
+    gameOverImg = loadImage(ASSET_BASE + 'assets/images/gameover.gif');
+    pixelFont = loadFont(ASSET_BASE + 'assets/fonts/pixelFont.ttf');
+    birdImg = loadImage(ASSET_BASE + 'assets/images/bird.gif');
 
     // Guard loadSound — if p5.sound failed to load, typeof loadSound !== 'function'
     if (typeof loadSound === 'function') {
-      bgMusic = loadSound('assets/sounds/backgroundMusic.mp3');
-      gameOverSound = loadSound('assets/sounds/gameOver.mp3');
-      collectSound = loadSound('assets/sounds/collect.mp3');
+      bgMusic = loadSound(ASSET_BASE + 'assets/sounds/backgroundMusic.mp3');
+      gameOverSound = loadSound(ASSET_BASE + 'assets/sounds/gameOver.mp3');
+      collectSound = loadSound(ASSET_BASE + 'assets/sounds/collect.mp3');
     } else {
       console.warn('p5.sound not available — skipping sound loads');
       bgMusic = null;
@@ -73,7 +78,7 @@ function preload() {
     // Player run frames (precompute _drawWidth and _drawHeight)
     runFrames = [];
     for (let i = 1; i <= 6; i++) {
-      let img = loadImage(`assets/images/run${i}.png`, (loadedImg) => {
+      let img = loadImage(ASSET_BASE + `assets/images/run${i}.png`, (loadedImg) => {
         loadedImg._drawHeight = TARGET_HEIGHT;
         loadedImg._drawWidth = (loadedImg.width / loadedImg.height) * TARGET_HEIGHT;
       });
@@ -82,9 +87,9 @@ function preload() {
 
     // Jump / doubleJump / fall frames
     const extraFrames = [
-      'assets/images/jump.png',
-      'assets/images/doubleJump.png',
-      'assets/images/fall.png'
+      ASSET_BASE + 'assets/images/jump.png',
+      ASSET_BASE + 'assets/images/doubleJump.png',
+      ASSET_BASE + 'assets/images/fall.png'
     ];
     [jumpFrame, doubleJumpFrame, fallFrame] = extraFrames.map(f => {
       let img = loadImage(f, (loadedImg) => {
@@ -95,7 +100,7 @@ function preload() {
     });
 
     // Collectible image
-    collectibleImg = loadImage('assets/images/collectible.png');
+    collectibleImg = loadImage(ASSET_BASE + 'assets/images/collectible.png');
 
   } catch (e) {
     console.error('Error during preload:', e);
@@ -197,8 +202,8 @@ function drawTitleScreen() {
 }
 
 function createPlayButton() {
-  // Use the same relative path as preload (no leading slash).
-  playButton = createImg('assets/images/play_button.png');
+  // Use an absolute URL for the clickable <img> element too.
+  playButton = createImg(ASSET_BASE + 'assets/images/play_button.png');
 
   let btnWorldX = BASE_W / 2 - playBtnImg.width / 2;
   let btnWorldY = BASE_H / 2 ;
