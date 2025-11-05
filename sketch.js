@@ -4,7 +4,7 @@ console.log('sketch.js loaded');
 // ------------------- ASSET BASE (GitHub Pages) -------------------
 // Change this to the exact GitHub Pages live URL for your repo.
 // Use the live site URL that GitHub shows when Pages is enabled.
-const ASSET_BASE = 'https://brettdrawsstuff.github.io/GnomieRunner-OG/';
+const ASSET_BASE = 'https://raw.githubusercontent.com/BrettDrawsStuff/GnomieRunner-OG/main/';
 
 // ------------------- SEGMENT 1: GLOBAL SETUP + PRELOAD -------------------
 let player;
