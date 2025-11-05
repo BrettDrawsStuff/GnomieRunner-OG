@@ -40,24 +40,30 @@ const BASE_H = 400;
 let scaleFactor = 1;
 
 function preload() {
+  // NOTE: All asset paths are now relative (no leading slash, no absolute URLs).
+  // Place your files under the folders suggested below:
+  // - assets/images/
+  // - assets/sounds/
+  // - assets/fonts/
+
   // Background and UI images
-  bgImg = loadImage('background.png');
-  blockImg = loadImage('block.png');
-  tallImg = loadImage('tall.png');
-  holeImg = loadImage('hole.png');
-  titleImg = loadImage('title.png');
-  playBtnImg = loadImage('play_button.png');
-  gameOverImg = loadImage('gameover.gif');
-  pixelFont = loadFont('pixelFont.ttf');
-  birdImg = loadImage('bird.gif');
-  bgMusic = loadSound('backgroundMusic.mp3');
-  gameOverSound = loadSound('gameOver.mp3');
-  collectSound = loadSound('collect.mp3');
+  bgImg = loadImage('assets/images/background.png');
+  blockImg = loadImage('assets/images/block.png');
+  tallImg = loadImage('assets/images/tall.png');
+  holeImg = loadImage('assets/images/hole.png');
+  titleImg = loadImage('assets/images/title.png');
+  playBtnImg = loadImage('assets/images/play_button.png');
+  gameOverImg = loadImage('assets/images/gameover.gif');
+  pixelFont = loadFont('assets/fonts/pixelFont.ttf');
+  birdImg = loadImage('assets/images/bird.gif');
+  bgMusic = loadSound('assets/sounds/backgroundMusic.mp3');
+  gameOverSound = loadSound('assets/sounds/gameOver.mp3');
+  collectSound = loadSound('assets/sounds/collect.mp3');
 
   // Player run frames (precompute _drawWidth and _drawHeight)
   runFrames = [];
   for (let i = 1; i <= 6; i++) {
-    let img = loadImage(`run${i}.png`, (loadedImg) => {
+    let img = loadImage(`assets/images/run${i}.png`, (loadedImg) => {
       loadedImg._drawHeight = TARGET_HEIGHT;
       loadedImg._drawWidth = (loadedImg.width / loadedImg.height) * TARGET_HEIGHT;
     });
@@ -65,7 +71,11 @@ function preload() {
   }
 
   // Jump / doubleJump / fall frames
-  const extraFrames = ['jump.png', 'doubleJump.png', 'fall.png'];
+  const extraFrames = [
+    'assets/images/jump.png',
+    'assets/images/doubleJump.png',
+    'assets/images/fall.png'
+  ];
   [jumpFrame, doubleJumpFrame, fallFrame] = extraFrames.map(f => {
     let img = loadImage(f, (loadedImg) => {
       loadedImg._drawHeight = TARGET_HEIGHT;
@@ -75,7 +85,7 @@ function preload() {
   });
 
   // Collectible image
-  collectibleImg = loadImage('collectible.png');
+  collectibleImg = loadImage('assets/images/collectible.png');
 }
 
 function setup() {
@@ -165,14 +175,15 @@ function drawTitleScreen() {
 }
 
 function createPlayButton() {
-  playButton = createImg('play_button.png');
+  // Use the same relative path as preload (no leading slash).
+  playButton = createImg('assets/images/play_button.png');
 
   let btnWorldX = BASE_W / 2 - playBtnImg.width / 2;
   let btnWorldY = BASE_H / 2 ;
 
   let px = (width - BASE_W * scaleFactor) / 2 + btnWorldX * scaleFactor;
-let py = (height - BASE_H * scaleFactor) / 2 + btnWorldY * scaleFactor;
-playButton.position(px, py);
+  let py = (height - BASE_H * scaleFactor) / 2 + btnWorldY * scaleFactor;
+  playButton.position(px, py);
 
   playButton.size(playBtnImg.width * scaleFactor, playBtnImg.height * scaleFactor);
 
@@ -190,8 +201,8 @@ function startGame() {
   gameState = "playing";
   
   if (bgMusic && !bgMusic.isPlaying()) {
-  bgMusic.loop();
-}
+    bgMusic.loop();
+  }
 
   bgX1 = 0;
   bgX2 = BASE_W;
@@ -211,21 +222,20 @@ function drawGame() {
   text("Score: " + score, 10, 10);
   
   if (showJumpHint) {
-  let elapsed = millis() - jumpHintStartTime;
-  let alpha = map(elapsed, 0, jumpHintDuration, 255, 0); // fade from 255 → 0
-  alpha = constrain(alpha, 0, 255);
+    let elapsed = millis() - jumpHintStartTime;
+    let alpha = map(elapsed, 0, jumpHintDuration, 255, 0); // fade from 255 → 0
+    alpha = constrain(alpha, 0, 255);
 
-  fill(0, alpha); // black text with fading alpha
-  textFont(pixelFont);
-  textSize(12 * scaleFactor);
-  textAlign(CENTER, TOP);
-  text("Press SPACE to jump", BASE_W / 2, 10);
+    fill(0, alpha); // black text with fading alpha
+    textFont(pixelFont);
+    textSize(12 * scaleFactor);
+    textAlign(CENTER, TOP);
+    text("Press SPACE to jump", BASE_W / 2, 10);
 
-  if (elapsed > jumpHintDuration) {
-    showJumpHint = false; // completely hide after fade
-  
-}
-}
+    if (elapsed > jumpHintDuration) {
+      showJumpHint = false; // completely hide after fade
+    }
+  }
 
   // Draw ground segments (skip holes)
   stroke(0);
@@ -284,10 +294,10 @@ function drawGame() {
     let c = collectibles[i];
     c.update();
     c.show();
-if (c.collected(player)) {
-  score++;
-  if (collectSound) collectSound.play();
-  collectibles.splice(i, 1);
+    if (c.collected(player)) {
+      score++;
+      if (collectSound) collectSound.play();
+      collectibles.splice(i, 1);
     } else if (c.offscreen()) {
       collectibles.splice(i, 1);
     }
@@ -332,13 +342,13 @@ function triggerGameOver() {
   gameState = "gameOver";
   gameOverTime = millis();
 
-if (bgMusic && bgMusic.isPlaying()) {
-  bgMusic.stop();
-}
+  if (bgMusic && bgMusic.isPlaying()) {
+    bgMusic.stop();
+  }
   
   if (gameOverSound) {
-  gameOverSound.play();
-}
+    gameOverSound.play();
+  }
 }
 
 function keyPressed() {
